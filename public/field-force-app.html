@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerLine Inspector - Field Force Mobility App</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeng@17.0.0/resources/themes/lara-light-blue/theme.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeng@17.0.0/resources/primeng.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons@6.0.1/primeicons.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@3.3.1/primeflex.css">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/primevue@3.45.0/umd/primevue.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-online {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+        
+        .status-offline {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+        
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid;
+        }
+        
+        .stat-card.primary { border-left-color: #3b82f6; }
+        .stat-card.success { border-left-color: #10b981; }
+        .stat-card.warning { border-left-color: #f59e0b; }
+        .stat-card.danger { border-left-color: #ef4444; }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .work-order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .work-order-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .priority-critical { border-left: 4px solid #ef4444; }
+        .priority-high { border-left: 4px solid #f97316; }
+        .priority-medium { border-left: 4px solid #eab308; }
+        .priority-low { border-left: 4px solid #22c55e; }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-critical { background-color: #fef2f2; color: #dc2626; }
+        .badge-high { background-color: #fff7ed; color: #ea580c; }
+        .badge-medium { background-color: #fefce8; color: #ca8a04; }
+        .badge-low { background-color: #f0fdf4; color: #16a34a; }
+        
+        .badge-draft { background-color: #f3f4f6; color: #374151; }
+        .badge-submitted { background-color: #dbeafe; color: #1d4ed8; }
+        .badge-approved { background-color: #dcfce7; color: #16a34a; }
+        .badge-rejected { background-color: #fef2f2; color: #dc2626; }
+        .badge-in-progress { background-color: #fef3c7; color: #d97706; }
+        .badge-completed { background-color: #dcfce7; color: #16a34a; }
+        
+        .notification-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .notification-item.unread {
+            background-color: #eff6ff;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .map-container {
+            height: 400px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tower-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .tower-marker:hover {
+            transform: scale(1.2);
+        }
+        
+        .tower-marker.good { background-color: #22c55e; }
+        .tower-marker.fair { background-color: #eab308; }
+        .tower-marker.poor { background-color: #f97316; }
+        .tower-marker.critical { background-color: #ef4444; }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .tabs {
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-list {
+            display: flex;
+            gap: 0;
+        }
+        
+        .tab-button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            color: #6b7280;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-button.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .tab-button:hover {
+            color: #374151;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-list {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="flex justify-content-between align-items-center">
+                <div class="flex align-items-center gap-3">
+                    <i class="pi pi-bolt text-4xl"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold m-0">PowerLine Inspector</h1>
+                        <p class="m-0 opacity-90">Transmission Line Management System</p>
+                    </div>
+                </div>
+                <div class="flex align-items-center gap-3">
+                    <div :class="['status-badge', isOnline ? 'status-online' : 'status-offline']">
+                        <i :class="isOnline ? 'pi pi-wifi' : 'pi pi-wifi-off'"></i>
+                        {{ isOnline ? 'Online' : 'Offline' }}
+                    </div>
+                    <button class="btn btn-outline" @click="showNotifications = true">
+                        <i class="pi pi-bell"></i>
+                        <span v-if="unreadNotifications > 0" class="badge badge-critical ml-1">
+                            {{ unreadNotifications }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <div class="tab-list">
+                    <button 
+                        v-for="tab in tabs" 
+                        :key="tab.id"
+                        :class="['tab-button', { active: activeTab === tab.id }]"
+                        @click="activeTab = tab.id"
+                    >
+                        <i :class="tab.icon"></i>
+                        {{ tab.label }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div v-show="activeTab === 'dashboard'">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="m-0 text-sm text-600">Total Work Orders</h3>
+                                <div class="stat-value text-primary">{{ dashboardStats.totalWorkOrders }}</div>
+                                <p class="m-0 text-sm text-500">+2 from yesterday</p>
+                            </div>
+                            <i class="pi pi-calendar text-4xl text-primary"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="m-0 text-sm text-600">Pending Inspections</h3>
+                                <div class="stat-value text-orange-500">{{ dashboardStats.pendingInspections }}</div>
+                                <p class="m-0 text-sm text-500">Due this week</p>
+                            </div>
+                            <i class="pi pi-clock text-4xl text-orange-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="m-0 text-sm text-600">Completed Today</h3>
+                                <div class="stat-value text-green-500">{{ dashboardStats.completedToday }}</div>
+                                <p class="m-0 text-sm text-500">Good progress</p>
+                            </div>
+                            <i class="pi pi-check-circle text-4xl text-green-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card danger">
+                        <div class="flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="m-0 text-sm text-600">Critical Issues</h3>
+                                <div class="stat-value text-red-500">{{ dashboardStats.criticalIssues }}</div>
+                                <p class="m-0 text-sm text-500">Requires attention</p>
+                            </div>
+                            <i class="pi pi-exclamation-triangle text-4xl text-red-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="work-order-card">
+                    <h3 class="text-xl font-bold mb-3">Recent Activities</h3>
+                    <div class="space-y-3">
+                        <div v-for="activity in recentActivities" :key="activity.id" class="flex align-items-center gap-3 p-3 border-round">
+                            <div :class="['w-2rem h-2rem border-circle flex align-items-center justify-content-center', getActivityColor(activity.type)]">
+                                <i :class="activity.icon" class="text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="m-0 font-medium">{{ activity.title }}</p>
+                                <p class="m-0 text-sm text-500">{{ activity.time }} by {{ activity.user }}</p>
+                            </div>
+                            <span :class="['badge', getBadgeClass(activity.status)]">
+                                {{ activity.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Orders Tab -->
+            <div v-show="activeTab === 'workorders'">
+                <div class="flex justify-content-between align-items-center mb-4">
+                    <h2 class="text-2xl font-bold m-0">Work Orders</h2>
+                    <button class="btn btn-primary" @click="showCreateWorkOrder = true">
+                        <i class="pi pi-plus"></i>
+                        Create Work Order
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="work-order-card mb-4">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Search</label>
+                            <input 
+                                type="text" 
+                                class="form-input" 
+                                placeholder="Search work orders..."
+                                v-model="searchTerm"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status Filter</label>
+                            <select class="form-input" v-model="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="draft">Draft</option>
+                                <option value="submitted">Submitted</option>
+                                <option value="approved">Approved</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Priority Filter</label>
+                            <select class="form-input" v-model="priorityFilter">
+                                <option value="">All Priority</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Work Orders List -->
+                <div v-for="workOrder in filteredWorkOrders" :key="workOrder.id" 
+                     :class="['work-order-card', 'priority-' + workOrder.priority]">
+                    <div class="flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 class="text-lg font-bold m-0 mb-2">{{ workOrder.title }}</h3>
+                            <p class="m-0 text-600">{{ workOrder.description }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <span :class="['badge', 'badge-' + workOrder.priority]">
+                                {{ workOrder.priority }}
+                            </span>
+                            <span :class="['badge', 'badge-' + workOrder.status]">
+                                {{ workOrder.status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="col-12 md:col-4">
+                            <div class="flex align-items-center gap-2 mb-2">
+                                <i class="pi pi-user text-500"></i>
+                                <span class="text-sm">{{ workOrder.assignee }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <div class="flex align-items-center gap-2 mb-2">
+                                <i class="pi pi-map-marker text-500"></i>
+                                <span class="text-sm">{{ workOrder.location }}</span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <div class="flex align-items-center gap-2 mb-2">
+                                <i class="pi pi-calendar text-500"></i>
+                                <span class="text-sm">Due: {{ workOrder.dueDate }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-3">
+                        <button v-if="workOrder.status === 'draft'" class="btn btn-primary" 
+                                @click="submitForApproval(workOrder.id)">
+                            <i class="pi pi-send"></i>
+                            Submit for Approval
+                        </button>
+                        <button v-if="workOrder.status === 'submitted'" class="btn btn-success"
+                                @click="approveWorkOrder(workOrder.id)">
+                            <i class="pi pi-check"></i>
+                            Approve
+                        </button>
+                        <button class="btn btn-outline">
+                            <i class="pi pi-pencil"></i>
+                            Edit
+                        </button>
+                        <button class="btn btn-outline">
+                            <i class="pi pi-eye"></i>
+                            View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inspection Tab -->
+            <div v-show="activeTab === 'inspection'">
+                <div class="work-order-card">
+                    <h2 class="text-2xl font-bold mb-4">Tower Inspection Form</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Work Order ID</label>
+                            <input type="text" class="form-input" v-model="inspectionForm.workOrderId" placeholder="WO-001">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tower Number</label>
+                            <input type="text" class="form-input" v-model="inspectionForm.towerNumber" placeholder="T-145">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inspector Name</label>
+                            <input type="text" class="form-input" v-model="inspectionForm.inspectorName" placeholder="John Smith">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inspection Date</label>
+                            <input type="date" class="form-input" v-model="inspectionForm.inspectionDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Weather Conditions</label>
+                            <select class="form-input" v-model="inspectionForm.weatherConditions">
+                                <option value="">Select weather</option>
+                                <option value="clear">Clear</option>
+                                <option value="cloudy">Cloudy</option>
+                                <option value="rainy">Rainy</option>
+                                <option value="windy">Windy</option>
+                                <option value="stormy">Stormy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Overall Condition</label>
+                            <select class="form-input" v-model="inspectionForm.overallCondition">
+                                <option value="">Select condition</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Detailed Observations</label>
+                        <textarea class="form-input" rows="4" v-model="inspectionForm.observations"
+                                  placeholder="Describe any specific observations, defects, or concerns..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Recommendations</label>
+                        <textarea class="form-input" rows="4" v-model="inspectionForm.recommendations"
+                                  placeholder="Provide recommendations for maintenance, repairs, or follow-up actions..."></textarea>
+                    </div>
+
+                    <div class="flex gap-4 mt-4">
+                        <button class="btn btn-outline" @click="saveInspectionOffline">
+                            <i class="pi pi-save"></i>
+                            Save Offline
+                        </button>
+                        <button class="btn btn-primary" @click="submitInspection">
+                            <i class="pi pi-upload"></i>
+                            Submit Inspection
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Tab -->
+            <div v-show="activeTab === 'map'">
+                <div class="work-order-card">
+                    <h2 class="text-2xl font-bold mb-4">Transmission Line Map</h2>
+                    
+                    <div class="map-container">
+                        <!-- Simulated Map with Tower Markers -->
+                        <div v-for="tower in towers" :key="tower.id"
+                             :class="['tower-marker', tower.status]"
+                             :style="{ left: tower.x + '%', top: tower.y + '%' }"
+                             @click="selectTower(tower)"
+                             :title="'Tower ' + tower.number + ' - ' + tower.status">
+                        </div>
+                        
+                        <!-- Map Grid Pattern -->
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-20">
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ccc" stroke-width="1"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)"/>
+                        </svg>
+                        
+                        <!-- Transmission Lines -->
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                            <path d="M 20% 30% Q 35% 40% 50% 50% T 80% 70%" 
+                                  stroke="#374151" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                        </svg>
+                    </div>
+
+                    <!-- Selected Tower Info -->
+                    <div v-if="selectedTower" class="mt-4 p-4 border border-round">
+                        <h3 class="text-lg font-bold mb-2">Tower {{ selectedTower.number }}</h3>
+                        <div class="grid">
+                            <div class="col-12 md:col-6">
+                                <p><strong>Status:</strong> 
+                                    <span :class="['badge', 'badge-' + selectedTower.status]">
+                                        {{ selectedTower.status }}
+                                    </span>
+                                </p>
+                                <p><strong>Last Inspection:</strong> {{ selectedTower.lastInspection }}</p>
+                                <p><strong>Location:</strong> {{ selectedTower.location }}</p>
+                            </div>
+                            <div class="col-12 md:col-6">
+                                <div class="flex gap-2">
+                                    <button class="btn btn-primary">
+                                        <i class="pi pi-directions"></i>
+                                        Navigate
+                                    </button>
+                                    <button class="btn btn-outline">
+                                        <i class="pi pi-eye"></i>
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sync Tab -->
+            <div v-show="activeTab === 'sync'">
+                <div class="work-order-card">
+                    <h2 class="text-2xl font-bold mb-4">Offline Sync Manager</h2>
+                    
+                    <!-- Sync Status -->
+                    <div class="stats-grid mb-4">
+                        <div class="stat-card primary">
+                            <h3 class="m-0 text-sm text-600">Pending Uploads</h3>
+                            <div class="stat-value text-primary">{{ syncStats.pendingUploads }}</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <h3 class="m-0 text-sm text-600">Offline Data</h3>
+                            <div class="stat-value text-orange-500">{{ syncStats.offlineItems }}</div>
+                        </div>
+                        <div class="stat-card success">
+                            <h3 class="m-0 text-sm text-600">Last Sync</h3>
+                            <div class="text-sm text-green-500">{{ syncStats.lastSync || 'Never' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Sync Progress -->
+                    <div v-if="syncInProgress" class="mb-4">
+                        <h3 class="text-lg font-bold mb-2">
+                            <i class="pi pi-spin pi-spinner mr-2"></i>
+                            Sync in Progress
+                        </h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" :style="{ width: syncProgress + '%' }"></div>
+                        </div>
+                        <p class="text-sm text-500 mt-2">{{ syncProgress }}% complete</p>
+                    </div>
+
+                    <!-- Sync Actions -->
+                    <div class="flex gap-2 mb-4">
+                        <button class="btn btn-primary" @click="performSync" :disabled="!isOnline || syncInProgress">
+                            <i class="pi pi-upload"></i>
+                            Sync Now
+                        </button>
+                        <button class="btn btn-outline" @click="downloadForOffline" :disabled="!isOnline || syncInProgress">
+                            <i class="pi pi-download"></i>
+                            Download for Offline
+                        </button>
+                        <button class="btn btn-danger" @click="clearOfflineData">
+                            <i class="pi pi-trash"></i>
+                            Clear Offline Data
+                        </button>
+                    </div>
+
+                    <!-- Offline Data List -->
+                    <div class="grid">
+                        <div class="col-12 md:col-6">
+                            <h3 class="text-lg font-bold mb-3">Work Orders ({{ offlineWorkOrders.length }})</h3>
+                            <div v-for="wo in offlineWorkOrders.slice(0, 5)" :key="wo.id" 
+                                 class="flex justify-content-between align-items-center p-2 border border-round mb-2">
+                                <div>
+                                    <p class="m-0 font-medium">{{ wo.title || wo.id }}</p>
+                                    <p class="m-0 text-sm text-500">{{ wo.status }}</p>
+                                </div>
+                                <span :class="['badge', wo.syncStatus === 'synced' ? 'badge-low' : 'badge-medium']">
+                                    {{ wo.syncStatus || 'pending' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-12 md:col-6">
+                            <h3 class="text-lg font-bold mb-3">Inspections ({{ offlineInspections.length }})</h3>
+                            <div v-for="ins in offlineInspections.slice(0, 5)" :key="ins.id" 
+                                 class="flex justify-content-between align-items-center p-2 border border-round mb-2">
+                                <div>
+                                    <p class="m-0 font-medium">{{ ins.towerNumber || ins.id }}</p>
+                                    <p class="m-0 text-sm text-500">{{ ins.status }}</p>
+                                </div>
+                                <span :class="['badge', ins.syncStatus === 'synced' ? 'badge-low' : 'badge-medium']">
+                                    {{ ins.syncStatus || 'pending' }}
+                                </span>
+                            </div>
+                            <div v-if="offlineInspections.length === 0" class="text-center text-500 p-4">
+                                No offline inspections
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Create Work Order Modal -->
+        <div v-if="showCreateWorkOrder" class="modal-overlay" @click="showCreateWorkOrder = false">
+            <div class="modal-content" @click.stop>
+                <h2 class="text-xl font-bold mb-4">Create New Work Order</h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-input" v-model="newWorkOrder.title" placeholder="Work order title">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tower Number</label>
+                        <input type="text" class="form-input" v-model="newWorkOrder.towerNumber" placeholder="T-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-input" v-model="newWorkOrder.priority">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assignee</label>
+                        <input type="text" class="form-input" v-model="newWorkOrder.assignee" placeholder="Assigned technician">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" class="form-input" v-model="newWorkOrder.dueDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" v-model="newWorkOrder.location" placeholder="Grid section and coordinates">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" rows="3" v-model="newWorkOrder.description" 
+                              placeholder="Detailed description of the work to be performed"></textarea>
+                </div>
+                
+                <div class="flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-outline" @click="showCreateWorkOrder = false">Cancel</button>
+                    <button class="btn btn-primary" @click="createWorkOrder">Create Work Order</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Modal -->
+        <div v-if="showNotifications" class="modal-overlay" @click="showNotifications = false">
+            <div class="modal-content" @click.stop>
+                <h2 class="text-xl font-bold mb-4">Notifications</h2>
+                
+                <div v-for="notification in notifications" :key="notification.id" 
+                     :class="['notification-item', { unread: !notification.read }]"
+                     @click="markAsRead(notification.id)">
+                    <div class="flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="font-medium m-0 mb-1">{{ notification.title }}</h4>
+                            <p class="text-sm text-600 m-0 mb-1">{{ notification.message }}</p>
+                            <p class="text-xs text-400 m-0">{{ formatDate(notification.timestamp) }}</p>
+                        </div>
+                        <div class="flex align-items-center gap-2">
+                            <span :class="['badge', 'badge-' + notification.priority]">
+                                {{ notification.priority }}
+                            </span>
+                            <div v-if="!notification.read" class="w-1rem h-1rem bg-primary border-circle"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-content-end mt-4">
+                    <button class="btn btn-outline" @click="showNotifications = false">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isOnline: navigator.onLine,
+                    activeTab: 'dashboard',
+                    showCreateWorkOrder: false,
+                    showNotifications: false,
+                    searchTerm: '',
+                    statusFilter: '',
+                    priorityFilter: '',
+                    syncInProgress: false,
+                    syncProgress: 0,
+                    selectedTower: null,
+                    
+                    tabs: [
+                        { id: 'dashboard', label: 'Dashboard', icon: 'pi pi-home' },
+                        { id: 'workorders', label: 'Work Orders', icon: 'pi pi-list' },
+                        { id: 'inspection', label: 'Inspection', icon: 'pi pi-file-edit' },
+                        { id: 'map', label: 'Map View', icon: 'pi pi-map' },
+                        { id: 'sync', label: 'Offline Sync', icon: 'pi pi-sync' }
+                    ],
+                    
+                    dashboardStats: {
+                        totalWorkOrders: 24,
+                        pendingInspections: 8,
+                        completedToday: 3,
+                        criticalIssues: 2
+                    },
+                    
+                    recentActivities: [
+                        {
+                            id: 1,
+                            title: 'Tower T-145 inspection completed',
+                            time: '2 hours ago',
+                            user: 'John Smith',
+                            status: 'Completed',
+                            type: 'success',
+                            icon: 'pi pi-check-circle'
+                        },
+                        {
+                            id: 2,
+                            title: 'Critical issue found at Tower T-132',
+                            time: '4 hours ago',
+                            user: 'Sarah Johnson',
+                            status: 'Critical',
+                            type: 'danger',
+                            icon: 'pi pi-exclamation-triangle'
+                        },
+                        {
+                            id: 3,
+                            title: 'New work order assigned: Line Section 5',
+                            time: '6 hours ago',
+                            user: 'System',
+                            status: 'Assigned',
+                            type: 'info',
+                            icon: 'pi pi-plus-circle'
+                        }
+                    ],
+                    
+                    workOrders: [
+                        {
+                            id: 'WO-001',
+                            title: 'Routine Inspection - Tower T-145',
+                            description: 'Monthly routine inspection of transmission tower T-145 including structural integrity check',
+                            priority: 'medium',
+                            status: 'approved',
+                            assignee: 'John Smith',
+                            location: 'Grid Section A, Mile 12.5',
+                            dueDate: '2024-01-15',
+                            towerNumber: 'T-145'
+                        },
+                        {
+                            id: 'WO-002',
+                            title: 'Emergency Repair - Tower T-132',
+                            description: 'Critical structural damage detected, immediate repair required',
+                            priority: 'critical',
+                            status: 'in-progress',
+                            assignee: 'Sarah Johnson',
+                            location: 'Grid Section B, Mile 8.2',
+                            dueDate: '2024-01-12',
+                            towerNumber: 'T-132'
+                        },
+                        {
+                            id: 'WO-003',
+                            title: 'Vegetation Management - Line Corridor',
+                            description: 'Tree trimming and vegetation clearance along transmission corridor',
+                            priority: 'low',
+                            status: 'completed',
+                            assignee: 'Mike Wilson',
+                            location: 'Grid Section C, Mile 15-18',
+                            dueDate: '2024-01-08',
+                            towerNumber: 'Multiple'
+                        },
+                        {
+                            id: 'WO-004',
+                            title: 'Insulator Replacement - Tower T-089',
+                            description: 'Replace damaged insulators on tower T-089',
+                            priority: 'high',
+                            status: 'submitted',
+                            assignee: 'David Brown',
+                            location: 'Grid Section D, Mile 22.1',
+                            dueDate: '2024-01-16',
+                            towerNumber: 'T-089'
+                        }
+                    ],
+                    
+                    newWorkOrder: {
+                        title: '',
+                        description: '',
+                        priority: 'medium',
+                        assignee: '',
+                        location: '',
+                        towerNumber: '',
+                        dueDate: ''
+                    },
+                    
+                    inspectionForm: {
+                        workOrderId: '',
+                        towerNumber: '',
+                        inspectorName: '',
+                        inspectionDate: new Date().toISOString().split('T')[0],
+                        weatherConditions: '',
+                        overallCondition: '',
+                        observations: '',
+                        recommendations: ''
+                    },
+                    
+                    towers: [
+                        { id: 1, number: 'T-145', status: 'good', x: 20, y: 30, lastInspection: '2024-01-10', location: 'Grid Section A' },
+                        { id: 2, number: 'T-132', status: 'critical', x: 35, y: 40, lastInspection: '2024-01-11', location: 'Grid Section B' },
+                        { id: 3, number: 'T-089', status: 'fair', x: 50, y: 50, lastInspection: '2024-01-08', location: 'Grid Section D' },
+                        { id: 4, number: 'T-156', status: 'good', x: 65, y: 60, lastInspection: '2024-01-09', location: 'Grid Section C' },
+                        { id: 5, number: 'T-201', status: 'poor', x: 80, y: 70, lastInspection: '2024-01-05', location: 'Grid Section A' }
+                    ],
+                    
+                    notifications: [
+                        {
+                            id: 'N-001',
+                            title: 'New Work Order Created',
+                            message: 'Work Order WO-003 has been created and requires approval',
+                            timestamp: '2024-01-13T09:00:00Z',
+                            read: false,
+                            priority: 'medium'
+                        },
+                        {
+                            id: 'N-002',
+                            title: 'Deadline Approaching',
+                            message: 'Work Order WO-001 is due in 2 days',
+                            timestamp: '2024-01-13T08:00:00Z',
+                            read: false,
+                            priority: 'high'
+                        },
+                        {
+                            id: 'N-003',
+                            title: 'Inspection Completed',
+                            message: 'Tower T-145 inspection has been completed successfully',
+                            timestamp: '2024-01-12T16:30:00Z',
+                            read: true,
+                            priority: 'low'
+                        }
+                    ],
+                    
+                    syncStats: {
+                        pendingUploads: 3,
+                        offlineItems: 12,
+                        lastSync: '2024-01-13 10:30 AM'
+                    },
+                    
+                    offlineWorkOrders: [],
+                    offlineInspections: []
+                }
+            },
+            
+            computed: {
+                filteredWorkOrders() {
+                    let filtered = this.workOrders;
+                    
+                    if (this.searchTerm) {
+                        filtered = filtered.filter(wo => 
+                            wo.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                            wo.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                            wo.towerNumber.toLowerCase().includes(this.searchTerm.toLowerCase())
+                        );
+                    }
+                    
+                    if (this.statusFilter) {
+                        filtered = filtered.filter(wo => wo.status === this.statusFilter);
+                    }
+                    
+                    if (this.priorityFilter) {
+                        filtered = filtered.filter(wo => wo.priority === this.priorityFilter);
+                    }
+                    
+                    return filtered;
+                },
+                
+                unreadNotifications() {
+                    return this.notifications.filter(n => !n.read).length;
+                }
+            },
+            
+            mounted() {
+                // Set up online/offline listeners
+                window.addEventListener('online', () => {
+                    this.isOnline = true;
+                    this.performAutoSync();
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.isOnline = false;
+                });
+                
+                // Load offline data
+                this.loadOfflineData();
+                
+                // Set up periodic sync
+                setInterval(() => {
+                    if (this.isOnline && !this.syncInProgress) {
+                        this.checkPendingSync();
+                    }
+                }, 30000);
+            },
+            
+            methods: {
+                createWorkOrder() {
+                    const workOrder = {
+                        ...this.newWorkOrder,
+                        id: `WO-${Date.now()}`,
+                        status: 'draft',
+                        createdDate: new Date().toISOString().split('T')[0]
+                    };
+                    
+                    this.workOrders.push(workOrder);
+                    this.saveToLocalStorage('workOrders', this.workOrders);
+                    
+                    // Create notification
+                    const notification = {
+                        id: `N-${Date.now()}`,
+                        title: 'Work Order Created',
+                        message: `Work Order ${workOrder.id} has been created`,
+                        timestamp: new Date().toISOString(),
+                        read: false,
+                        priority: workOrder.priority === 'critical' ? 'high' : 'medium'
+                    };
+                    
+                    this.notifications.unshift(notification);
+                    this.saveToLocalStorage('notifications', this.notifications);
+                    
+                    this.showCreateWorkOrder = false;
+                    this.resetNewWorkOrder();
+                },
+                
+                resetNewWorkOrder() {
+                    this.newWorkOrder = {
+                        title: '',
+                        description: '',
+                        priority: 'medium',
+                        assignee: '',
+                        location: '',
+                        towerNumber: '',
+                        dueDate: ''
+                    };
+                },
+                
+                submitForApproval(workOrderId) {
+                    const workOrder = this.workOrders.find(wo => wo.id === workOrderId);
+                    if (workOrder) {
+                        workOrder.status = 'submitted';
+                        this.saveToLocalStorage('workOrders', this.workOrders);
+                        
+                        // Create notification
+                        const notification = {
+                            id: `N-${Date.now()}`,
+                            title: 'Approval Required',
+                            message: `Work Order ${workOrderId} requires approval`,
+                            timestamp: new Date().toISOString(),
+                            read: false,
+                            priority: 'high'
+                        };
+                        
+                        this.notifications.unshift(notification);
+                        this.saveToLocalStorage('notifications', this.notifications);
+                    }
+                },
+                
+                approveWorkOrder(workOrderId) {
+                    const workOrder = this.workOrders.find(wo => wo.id === workOrderId);
+                    if (workOrder) {
+                        workOrder.status = 'approved';
+                        this.saveToLocalStorage('workOrders', this.workOrders);
+                        
+                        // Create notification
+                        const notification = {
+                            id: `N-${Date.now()}`,
+                            title: 'Work Order Approved',
+                            message: `Work Order ${workOrderId} has been approved`,
+                            timestamp: new Date().toISOString(),
+                            read: false,
+                            priority: 'medium'
+                        };
+                        
+                        this.notifications.unshift(notification);
+                        this.saveToLocalStorage('notifications', this.notifications);
+                    }
+                },
+                
+                saveInspectionOffline() {
+                    const inspection = {
+                        ...this.inspectionForm,
+                        id: `INS-${Date.now()}`,
+                        status: 'draft',
+                        syncStatus: 'pending',
+                        savedAt: new Date().toISOString()
+                    };
+                    
+                    this.offlineInspections.push(inspection);
+                    this.saveToLocalStorage('offlineInspections', this.offlineInspections);
+                    
+                    alert('Inspection saved offline successfully!');
+                },
+                
+                submitInspection() {
+                    const inspection = {
+                        ...this.inspectionForm,
+                        id: `INS-${Date.now()}`,
+                        status: 'completed',
+                        syncStatus: this.isOnline ? 'synced' : 'pending',
+                        submittedAt: new Date().toISOString()
+                    };
+                    
+                    this.offlineInspections.push(inspection);
+                    this.saveToLocalStorage('offlineInspections', this.offlineInspections);
+                    
+                    alert('Inspection submitted successfully!');
+                },
+                
+                selectTower(tower) {
+                    this.selectedTower = tower;
+                },
+                
+                performSync() {
+                    if (this.syncInProgress || !this.isOnline) return;
+                    
+                    this.syncInProgress = true;
+                    this.syncProgress = 0;
+                    
+                    // Simulate sync process
+                    const interval = setInterval(() => {
+                        this.syncProgress += 10;
+                        
+                        if (this.syncProgress >= 100) {
+                            clearInterval(interval);
+                            this.syncInProgress = false;
+                            this.syncStats.lastSync = new Date().toLocaleString();
+                            this.syncStats.pendingUploads = 0;
+                            
+                            // Mark items as synced
+                            this.offlineWorkOrders.forEach(wo => wo.syncStatus = 'synced');
+                            this.offlineInspections.forEach(ins => ins.syncStatus = 'synced');
+                            
+                            this.saveToLocalStorage('offlineWorkOrders', this.offlineWorkOrders);
+                            this.saveToLocalStorage('offlineInspections', this.offlineInspections);
+                        }
+                    }, 200);
+                },
+                
+                performAutoSync() {
+                    if (this.syncStats.pendingUploads > 0) {
+                        this.performSync();
+                    }
+                },
+                
+                checkPendingSync() {
+                    const pendingCount = this.offlineWorkOrders.filter(wo => wo.syncStatus === 'pending').length +
+                                       this.offlineInspections.filter(ins => ins.syncStatus === 'pending').length;
+                    
+                    if (pendingCount > 0) {
+                        this.performSync();
+                    }
+                },
+                
+                downloadForOffline() {
+                    if (!this.isOnline) return;
+                    
+                    this.syncInProgress = true;
+                    this.syncProgress = 0;
+                    
+                    // Simulate download
+                    const interval = setInterval(() => {
+                        this.syncProgress += 20;
+                        
+                        if (this.syncProgress >= 100) {
+                            clearInterval(interval);
+                            this.syncInProgress = false;
+                            
+                            // Add sample offline data
+                            const newWorkOrders = [
+                                {
+                                    id: `WO-OFFLINE-${Date.now()}`,
+                                    title: 'Offline Work Order',
+                                    status: 'pending',
+                                    syncStatus: 'synced',
+                                    downloadedAt: new Date().toISOString()
+                                }
+                            ];
+                            
+                            this.offlineWorkOrders.push(...newWorkOrders);
+                            this.saveToLocalStorage('offlineWorkOrders', this.offlineWorkOrders);
+                            this.syncStats.offlineItems = this.offlineWorkOrders.length + this.offlineInspections.length;
+                        }
+                    }, 300);
+                },
+                
+                clearOfflineData() {
+                    if (confirm('Are you sure you want to clear all offline data?')) {
+                        this.offlineWorkOrders = [];
+                        this.offlineInspections = [];
+                        localStorage.removeItem('offlineWorkOrders');
+                        localStorage.removeItem('offlineInspections');
+                        this.syncStats.offlineItems = 0;
+                        this.syncStats.pendingUploads = 0;
+                    }
+                },
+                
+                markAsRead(notificationId) {
+                    const notification = this.notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.read = true;
+                        this.saveToLocalStorage('notifications', this.notifications);
+                    }
+                },
+                
+                loadOfflineData() {
+                    this.offlineWorkOrders = this.loadFromLocalStorage('offlineWorkOrders', []);
+                    this.offlineInspections = this.loadFromLocalStorage('offlineInspections', []);
+                    this.workOrders = this.loadFromLocalStorage('workOrders', this.workOrders);
+                    this.notifications = this.loadFromLocalStorage('notifications', this.notifications);
+                    
+                    this.syncStats.offlineItems = this.offlineWorkOrders.length + this.offlineInspections.length;
+                    this.syncStats.pendingUploads = this.offlineWorkOrders.filter(wo => wo.syncStatus === 'pending').length +
+                                                   this.offlineInspections.filter(ins => ins.syncStatus === 'pending').length;
+                },
+                
+                saveToLocalStorage(key, data) {
+                    localStorage.setItem(key, JSON.stringify(data));
+                },
+                
+                loadFromLocalStorage(key, defaultValue) {
+                    const stored = localStorage.getItem(key);
+                    return stored ? JSON.parse(stored) : defaultValue;
+                },
+                
+                formatDate(timestamp) {
+                    return new Date(timestamp).toLocaleString();
+                },
+                
+                getActivityColor(type) {
+                    switch (type) {
+                        case 'success': return 'bg-green-500';
+                        case 'danger': return 'bg-red-500';
+                        case 'info': return 'bg-blue-500';
+                        default: return 'bg-gray-500';
+                    }
+                },
+                
+                getBadgeClass(status) {
+                    return `badge-${status.toLowerCase().replace(' ', '-')}`;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -9,6 +9,8 @@ import WorkOrderList from "@/components/work-order-list"
 import InspectionForm from "@/components/inspection-form"
 import MapView from "@/components/map-view"
 import OfflineManager from "@/components/offline-manager"
+import WorkOrderManagement from "@/components/work-order-management"
+import OfflineSyncManager from "@/components/offline-sync-manager"
 
 export default function FieldForceApp() {
   const [isOnline, setIsOnline] = useState(true)
@@ -64,11 +66,13 @@ export default function FieldForceApp() {
       {/* Main Content */}
       <main className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-6 mb-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="workorders">Work Orders</TabsTrigger>
+            <TabsTrigger value="management">Management</TabsTrigger>
             <TabsTrigger value="inspection">Inspection</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
+            <TabsTrigger value="sync">Offline Sync</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -160,12 +164,20 @@ export default function FieldForceApp() {
             <WorkOrderList searchTerm={searchTerm} />
           </TabsContent>
 
+          <TabsContent value="management">
+            <WorkOrderManagement />
+          </TabsContent>
+
           <TabsContent value="inspection">
             <InspectionForm />
           </TabsContent>
 
           <TabsContent value="map">
             <MapView />
+          </TabsContent>
+
+          <TabsContent value="sync">
+            <OfflineSyncManager />
           </TabsContent>
         </Tabs>
       </main>
